@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QSqlRelationalTableModel>
 #include <QSqlRelationalDelegate>
+#include <QTableView>
 //#include <QSqlRelation>
 
 #include "appsettings.h"
@@ -21,12 +22,15 @@ public:
     explicit qRTableModel(QWidget *parent = nullptr);
     ~qRTableModel();
     QSqlRelationalTableModel    *modelMain;
-    QSqlRelationalTableModel    *modelDevice;
-
+    QSqlRelationalTableModel    *mConfigx;
+    QSqlTableModel  *model;
+    void initiateTable(QTableView &table, QList<QString> * hColumns);
 private:
     Ui::qRTableModel *ui;
+    QTableView * setupTable(QString tableName);
     void setupMainModel(const QString &tableName, const QStringList &headers);
-    void setupDeviceModel(const QString &tableName, const QStringList &headers);
+    void setupConfigXModel(const QString &tableName, const QStringList &headers);
+    void setupModel(const QString &tableName, const QStringList &headers);
 };
 
 #endif // QRTABLEMODEL_H

@@ -13,21 +13,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QTableView" name="tableView">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>0</y>
-     <width>531</width>
-     <height>391</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QTableView" name="tableViewDevice">
    <property name="geometry">
     <rect>
-     <x>570</x>
-     <y>20</y>
+     <x>370</x>
+     <y>240</y>
      <width>256</width>
      <height>192</height>
     </rect>

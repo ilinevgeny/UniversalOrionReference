@@ -4,34 +4,13 @@
 #include <QMessageBox>
 #include <QSqlError>
 #include <QList>
+#include <QBoxLayout>
+#include <QPushButton>
+#include <QSpacerItem>
 #define TABLE                   "\"ConfigX\""
 #define ConceptX                "\"ConceptX\""
 #define DEVICE_IP               "IP"
 #define DEVICE_HOSTNAME         "Hostname"
-
-void qRTableModel::setupModel(const QString &tableName, const QStringList &headers)
-{
-
-    /* Производим инициализацию модели представления данных
-     * с установкой имени таблицы в базе данных, по которому
-     * будет производится обращение в таблице
-     * */
-
-    model = new QSqlTableModel(this);
-    model->setTable("\"ConfigX\"");
-   // model->select();
-
-    /* Устанавливаем названия колонок в таблице с сортировкой данных
-     * */
-     qDebug() << "columns" << model->columnCount();
-//    for(int i = 0, j = 0; i < model->columnCount(); i++, j++){
-//        model->setHeaderData(i, Qt::Horizontal,headers[j]);
-//        qDebug() << headers[j];
-//    }
-    // Устанавливаем сортировку по возрастанию данных по нулевой колонке
-    model->setSort(0,Qt::AscendingOrder);
-}
-
 
 
 QTableView * qRTableModel::setupTable(QString tableName)
@@ -52,58 +31,76 @@ qRTableModel::qRTableModel(QWidget *parent) :
     DBOrionEngine *db = new DBOrionEngine(dbSettings);
     db->Connect();
 
+    /* @TODO: attach layout to Widget class and use in setup model function
+     *
+     */
 
 //    QMessageBox::critical(0, tr("Error: Select failure!"),  model->lastError().text());
 
-    this->setupMainModel(TABLE, QStringList() << tr("CFConceptExt") << tr("CFName"));
-    this->setupConfigXModel(ConceptX, QStringList() << tr("CUUID") << tr("CName"));
+    QMap<QString, QString> *mainHeaders = new QMap<QString, QString>();
+    mainHeaders->insert("columnName_1", "CFName");
+    mainHeaders->insert( "columnName_2", "CFConceptExt");
+    QTableView * mainTbn = this->setupMainModel(TABLE, mainHeaders);
+    QBoxLayout *mainTLayout = new QBoxLayout(QBoxLayout::LeftToRight);
 
-//    this->setupTable(new QTableView(this));
-//    modelMain->select(); // Делаем выборку данных из таблицы
+    //QSpacerItem *spaser = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    //relTLayout->addItem(spaser);
 
-    ui->tableViewDevice->setModel(mConfigx);     // Устанавливаем модель на TableView
-    // Разрешаем выделение строк
-    ui->tableViewDevice->setSelectionBehavior(QAbstractItemView::SelectRows);
-    // Устанавливаем режим выделения лишь одно строки в таблице
-    ui->tableViewDevice->setSelectionMode(QAbstractItemView::SingleSelection);
-    // Устанавливаем размер колонок по содержимому
-    ui->tableViewDevice->resizeColumnsToContents();
-    ui->tableViewDevice->setItemDelegate(new QSqlRelationalDelegate(ui->tableViewDevice));
-    ui->tableViewDevice->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tableViewDevice->horizontalHeader()->setStretchLastSection(true);
-//    modelDevice->select();
+    mainTLayout->addWidget(mainTbn);
+
+    QMap<QString, QString> *relatedHeaders = new QMap<QString, QString>();
+    relatedHeaders->insert("RelcolumnName_1", "CName");
+    relatedHeaders->insert( "RelcolumnName_2", "CFName");
+    QTableView *relatedTbn = this->setupRelatedModel(ConceptX, relatedHeaders);
+
+    mainTLayout->addWidget(relatedTbn);
+
+    QBoxLayout *centralLayout = new QBoxLayout(QBoxLayout::TopToBottom);
+    centralLayout->addLayout(mainTLayout);
+    this->setLayout(centralLayout);
+    this->resize(900, 300);
+
+    connect(mainTbn, SIGNAL(clicked(const QModelIndex &)), this, SLOT(onTableClicked(const QModelIndex &)));
 }
 
-void qRTableModel::initiateTable(QTableView &table, QList<QString> * hColumns = nullptr)
+void qRTableModel::onTableClicked(const QModelIndex &index)
 {
-    for(QString columname : *hColumns)
-    {
-        table.setColumnHidden(this->modelMain->fieldIndex(columname), true);
+    if (index.isValid()) {
+        QString cellText = index.data().toString();
+        qDebug() << cellText;
+    }
+}
 
+void qRTableModel::initiateTable(QTableView *table, QSqlRelationalTableModel *model, QMap<QString, QString> *headers = nullptr)
+{
+
+    table->setModel(model);
+    qDebug() << model->columnCount();
+    for(int i = 0; i < model->columnCount(); i++)
+    {
+         if(headers->key(model->headerData(i, Qt::Horizontal).toString()) != "")
+         {
+              model->setHeaderData(i, Qt::Horizontal, headers->key(model->headerData(i, Qt::Horizontal).toString()));
+         }
+         else
+         {
+             table->setColumnHidden(model->fieldIndex(model->headerData(i, Qt::Horizontal).toString()), true);
+         }
     }
 
-    table.setSelectionBehavior(QAbstractItemView::SelectRows);
-    table.setSelectionMode(QAbstractItemView::SingleSelection);
-    table.resizeColumnsToContents();
-    table.setItemDelegate(new QSqlRelationalDelegate(&table));
-    table.setEditTriggers(QAbstractItemView::NoEditTriggers);
-    table.horizontalHeader()->setStretchLastSection(true);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->resizeColumnsToContents();
+    table->setItemDelegate(new QSqlRelationalDelegate(table));
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+//    table.horizontalHeader()->setStretchLastSection(true);
 }
 
-qRTableModel::~qRTableModel()
+QTableView * qRTableModel::setupMainModel(const QString &tableName, QMap<QString, QString> *mainHeaders)
 {
-    delete ui;
-}
-
-
-void qRTableModel::setupMainModel(const QString &tableName, const QStringList &headers)
-{
-    /* Производим инициализацию модели представления данных
-     * с установкой имени таблицы в базе данных, по которому
-     * будет производится обращение в таблице
-     * */
     this->modelMain = new QSqlRelationalTableModel(this);
     this->modelMain->setTable(tableName);
+
     /* Устанавливаем связи с таблицей устройств, по которым будет производится
      * подстановка данных
      * В метода setRelation указывается номер колонки, в которой будет
@@ -116,55 +113,37 @@ void qRTableModel::setupMainModel(const QString &tableName, const QStringList &h
 //    modelMain->setRelation(3, QSqlRelation(ConceptX, "C", DEVICE_HOSTNAME));
 //    modelMain->setRelation(4, QSqlRelation(ConceptX, "id", DEVICE_IP));
 
-    /* Устанавливаем названия колонок в таблице с сортировкой данных
-     * */
-//    for(int i = 0, j = 0; i < modelMain->columnCount(); i++, j++){
-//        modelMain->setHeaderData(i,Qt::Horizontal,headers[j]);
-//    }
     // Устанавливаем сортировку по возрастанию данных по нулевой колонке
     this->modelMain->setSort(3, Qt::AscendingOrder);
-    this->modelMain->setFilter("\"CFConceptExt\" BETWEEN 1000 AND 10000");
+    this->modelMain->setFilter("\"CFConceptExt\" BETWEEN 1000 AND 11000");
     this->modelMain->select(); // Делаем выборку данных из таблицы
 
     QTableView *tbn = this->setupTable("ConfigXTable");
-    tbn->setModel(this->modelMain);
 
-    QList<QString> *hColumnsList = new QList<QString>(QStringList() << "CFUUID" << "CFConcept" << "CFUUID1" << "CFFieldName" << "CFConf" <<  "CFEngName" << "CFFlag" << "CFIcon" << "CFParent");
-    this->initiateTable(*tbn, hColumnsList);
-    delete hColumnsList;
+    this->initiateTable(tbn, this->modelMain, mainHeaders);
+    return tbn;
 
-    /* Пример
-        // Разрешаем выделение строк
-        ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        // Устанавливаем режим выделения лишь одно строки в таблице
-        ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-        // Устанавливаем размер колонок по содержимому
-        ui->tableView->resizeColumnsToContents();
-        ui->tableView->setItemDelegate(new QSqlRelationalDelegate(ui->tableView));
-        ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-       // ui->tableView->horizontalHeader()->setStretchLastSection(true);
-    */
 }
 
 
-void qRTableModel::setupConfigXModel(const QString &tableName, const QStringList &headers)
+QTableView * qRTableModel::setupRelatedModel(const QString &tableName, QMap<QString, QString> *headers)
 {
-    /* Производим инициализацию модели представления данных
-     * с установкой имени таблицы в базе данных, по которому
-     * будет производится обращение в таблице
-     * */
-    this->mConfigx = new QSqlRelationalTableModel(this);
-    this->mConfigx->setTable(tableName);
 
-    /* Устанавливаем названия колонок в таблице с сортировкой данных
-     * */
-//    for(int i = 0, j = 0; i < modelDevice->columnCount(); i++, j++){
-//        modelDevice->setHeaderData(i,Qt::Horizontal,headers[j]);
-//    }
+    this->mRelated = new QSqlRelationalTableModel(this);
+    this->mRelated->setTable(tableName);
+    this->mRelated->setRelation(2, QSqlRelation(TABLE, "\"CFConceptExt\"", "\"CFName\""));
     // Устанавливаем сортировку по возрастанию данных по нулевой колонке
-    this->mConfigx->setSort(0,Qt::AscendingOrder);
-    this->mConfigx->select(); // Делаем выборку данных из таблицы
+    this->mRelated->setSort(0,Qt::AscendingOrder);
+//    this->mRelated->setFilter("\"CConcept\" = 1300");
+    this->mRelated->select(); // Делаем выборку данных из таблицы
 
-    QTableView *tbn = this->setupTable("ConfigXTable");
-    tbn->setModel(this->modelMain);
+    QTableView *tbn = this->setupTable("ConceptXTable");
+
+    this->initiateTable(tbn, this->mRelated, headers);
+    return tbn;
+}
+
+qRTableModel::~qRTableModel()
+{
+    delete ui;
 }

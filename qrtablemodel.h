@@ -22,15 +22,17 @@ public:
     explicit qRTableModel(QWidget *parent = nullptr);
     ~qRTableModel();
     QSqlRelationalTableModel    *modelMain;
-    QSqlRelationalTableModel    *mConfigx;
+    QSqlRelationalTableModel    *mRelated;
     QSqlTableModel  *model;
-    void initiateTable(QTableView &table, QList<QString> * hColumns);
+    void initiateTable(QTableView *table, QSqlRelationalTableModel  *model, QMap<QString, QString> *headers);
 private:
     Ui::qRTableModel *ui;
     QTableView * setupTable(QString tableName);
-    void setupMainModel(const QString &tableName, const QStringList &headers);
-    void setupConfigXModel(const QString &tableName, const QStringList &headers);
-    void setupModel(const QString &tableName, const QStringList &headers);
+    QTableView * setupMainModel(const QString &tableName, QMap<QString, QString> *headers);
+    QTableView * setupRelatedModel(const QString &tableName, QMap<QString, QString> *headers);
+private slots:
+    void onTableClicked(const QModelIndex &);
+
 };
 
 #endif // QRTABLEMODEL_H

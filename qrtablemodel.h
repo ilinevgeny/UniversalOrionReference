@@ -23,22 +23,28 @@ class qRTableModel : public QWidget
 public:
     explicit qRTableModel(QWidget *parent = nullptr);
     ~qRTableModel();
-    QSqlRelationalTableModel    *modelMain;
-    QSqlRelationalTableModel    *mRelated;
+//    QSqlRelationalTableModel    *modelMain;
+//    QSqlRelationalTableModel    *mRelated;
+    QSqlTableModel    *modelMain;
+    QSqlTableModel    *mRelated;
     QSqlTableModel  *model;
     QBoxLayout *centralLayout;
     QBoxLayout *mainTLayout;
     void initiateTable(QTableView *table, QSqlRelationalTableModel  *model, QMap<QString, QString> *headers);
+    void initiateTable(QTableView *table, QSqlTableModel  *model, QMap<QString, QString> *headers);
 private:
     Ui::qRTableModel *ui;
     QTableView * setupTable(QString tableName);
     QTableView * setupMainModel(const QString &tableName, QMap<QString, QString> *headers);
     QTableView * setupRelatedModel(const QString &tableName, QMap<QString, QString> *headers, const QString &filter = "");
     QTableView *relatedTbn;
+
 private slots:
     void onTableClicked(const QModelIndex &);
     void on_tableViewTriggerSelectionModel_currentRowChanged(const QModelIndex &);
-
+    void onDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
+protected:
+  virtual void  keyPressEvent(QKeyEvent *event);
 };
 
 #endif // QRTABLEMODEL_H

@@ -30,19 +30,26 @@ SOURCES += \
     appsettings.cpp \
     dborionengine.cpp \
     referencewindow.cpp \
-    conceptsettings.cpp
+    conceptsettings.cpp \
+    qrtablemodel.cpp \
+    ddeproxymodel.cpp \
+    bgdelegate.cpp
 
 HEADERS += \
         mainwindow.h \
     appsettings.h \
     dborionengine.h \
     referencewindow.h \
-    conceptsettings.h
+    conceptsettings.h \
+    qrtablemodel.h \
+    ddeproxymodel.h \
+    bgdelegate.h
 
 FORMS += \
         mainwindow.ui \
     appsettings.ui \
-    referencewindow.ui
+    referencewindow.ui \
+    qrtablemodel.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

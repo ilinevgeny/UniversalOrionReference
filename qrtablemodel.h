@@ -11,6 +11,8 @@
 
 #include "appsettings.h"
 #include "dborionengine.h"
+#include "ddeproxymodel.h"
+#include "bgdelegate.h"
 
 namespace Ui {
 class qRTableModel;
@@ -25,9 +27,12 @@ public:
     ~qRTableModel();
 //    QSqlRelationalTableModel    *modelMain;
 //    QSqlRelationalTableModel    *mRelated;
-    QSqlTableModel    *modelMain;
-    QSqlTableModel    *mRelated;
+//    QSqlTableModel    *modelMain;
+//    QSqlTableModel    *mRelated;
+    ddeProxyModel *modelMain;
+    ddeProxyModel *mRelated;
     QSqlTableModel  *model;
+    QTableView *mainTbn;
     QBoxLayout *centralLayout;
     QBoxLayout *mainTLayout;
     void initiateTable(QTableView *table, QSqlRelationalTableModel  *model, QMap<QString, QString> *headers);
